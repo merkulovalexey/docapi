@@ -26,7 +26,7 @@ public class LibreOfficeWorker {
 	public void connect(String unoUrl) throws java.lang.Exception {
 		
 		unoUrl = "uno:socket,host=localhost,port=2083;urp;StarOffice.ServiceManager";
-	 // create default local component context
+	 // create default local component context finally lets try git
         XComponentContext xLocalContext =com.sun.star.comp.helper.Bootstrap.createInitialComponentContext(null);
 
        // initial serviceManager
