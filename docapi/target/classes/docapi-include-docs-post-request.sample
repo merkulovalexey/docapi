@@ -1,0 +1,41 @@
+{
+  "template": "c29tZSBkYXRhIHRoYXQgaXMgZW5jb2RlZCBpbiBiYXNlNjQ=",
+  "convert2": "pdf",
+  "data": [
+    {
+      "key": "fio",
+      "value": "Merkulov Alexey"
+    }
+  ],
+  "directives": [
+    {
+      "key": "payments",
+      "type": "table",
+      "head": [
+        {
+          "name": "Date of payment",
+          "format": "bold"
+        },
+        {
+          "name": "Sum",
+          "format": "bold"
+        }
+      ],
+      "body": [
+        {
+          "format": "bold",
+          "stringData": [
+            {
+              "format": "italic",
+              "value": "September 20"
+            },
+            {
+              "format": "italic",
+              "value": "200000"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

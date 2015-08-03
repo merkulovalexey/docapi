@@ -1,0 +1,21 @@
+#%RAML 0.8
+title: docapi.ru
+version: v2
+baseUri: https://docapi.ru/api
+/docs:
+  post:
+    description: sends document, its parameters and directives to server
+    queryParameters:
+      access_token:
+    body:  
+      application/json:
+        schema: !include docapi-include-docs-post-request.schema
+        example: !include docapi-include-docs-post-request.sample 
+    responses:
+      200:
+        body:
+          application/json:
+            schema: !include docapi-include-docs-post-response.schema
+            example: !include docapi-include-docs-post-response.sample 
+              
+              
