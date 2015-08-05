@@ -9,6 +9,7 @@ import com.sun.star.beans.XPropertySet;
 import com.sun.star.bridge.XUnoUrlResolver;
 import com.sun.star.frame.XComponentLoader;
 import com.sun.star.frame.XStorable;
+import com.sun.star.io.XInputStream;
 import com.sun.star.lang.XComponent;
 import com.sun.star.lang.XMultiComponentFactory;
 import com.sun.star.text.XTextDocument;
@@ -22,17 +23,18 @@ import com.sun.star.util.XReplaceable;
 
 public class LibreOfficeWorker {
 	private XComponentContext xComponentContext;
+	private XComponent template; 
 	
 	public void connect(String unoUrl) throws java.lang.Exception {
 		
 		unoUrl = "uno:socket,host=localhost,port=2083;urp;StarOffice.ServiceManager";
-	 // create default local component context finally lets try git
+		// create default local component context
         XComponentContext xLocalContext =com.sun.star.comp.helper.Bootstrap.createInitialComponentContext(null);
 
-       // initial serviceManager
+        // initial serviceManager
         XMultiComponentFactory xLocalServiceManager = xLocalContext.getServiceManager();
 		
-    // create a urlresolver
+        // create a urlresolver
         Object urlResolver  = xLocalServiceManager.createInstanceWithContext("com.sun.star.bridge.UnoUrlResolver", xLocalContext );
 
        // query for the XUnoUrlResolver interface
@@ -69,6 +71,21 @@ public class LibreOfficeWorker {
         
         
         
+	}
+	
+	public void loadTemplate(byte[] byteArray) throws Exception {
+		
+		// transform the steam to LO
+		ByteArrayInputStream bytes = new ByteArrayInputStream(byteArray);
+		
+		
+		
+		XMultiComponentFactory xOfficeFactory = xComponentContext.getServiceManager();		
+		
+		XInputStream xInputStream = (XInputStream) UnoRuntime.queryInterface(  XInputStream.class, xOfficeFactory); 
+	
+		//xInputStream.readBytes(bytes, 1);
+		
 	}
 	
 	public byte[] fillTemplate(byte[] byteArray) throws Exception {
