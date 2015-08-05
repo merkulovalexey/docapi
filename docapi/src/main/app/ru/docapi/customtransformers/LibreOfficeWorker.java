@@ -3,13 +3,15 @@ package ru.docapi.customtransformers;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map.Entry;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.bridge.XUnoUrlResolver;
 import com.sun.star.frame.XComponentLoader;
 import com.sun.star.frame.XStorable;
-import com.sun.star.io.XInputStream;
 import com.sun.star.lang.XComponent;
 import com.sun.star.lang.XMultiComponentFactory;
 import com.sun.star.text.XTextDocument;
@@ -73,80 +75,52 @@ public class LibreOfficeWorker {
         
 	}
 	
-	public void loadTemplate(byte[] byteArray) throws Exception {
+	public void loadTemplate(byte[] bytes) throws Exception {
 		
 		// transform the steam to LO
-		ByteArrayInputStream bytes = new ByteArrayInputStream(byteArray);
 		
-		
+		OOoInputStream inputStream = new OOoInputStream(bytes);
+
 		
 		XMultiComponentFactory xOfficeFactory = xComponentContext.getServiceManager();		
 		
-		XInputStream xInputStream = (XInputStream) UnoRuntime.queryInterface(  XInputStream.class, xOfficeFactory); 
-	
-		//xInputStream.readBytes(bytes, 1);
+		Object desktopService = xOfficeFactory.createInstanceWithContext("com.sun.star.frame.Desktop", xComponentContext);
+        XComponentLoader xComponentLoader = (XComponentLoader) UnoRuntime.queryInterface(XComponentLoader.class, desktopService);
+        
+        PropertyValue[] conversionProperties = new PropertyValue[2];
+        conversionProperties[0] = new PropertyValue();
+        conversionProperties[1] = new PropertyValue();
+
+        conversionProperties[0].Name = "InputStream";
+        conversionProperties[0].Value = inputStream;
+        conversionProperties[1].Name = "Hidden";
+        conversionProperties[1].Value = new Boolean(true);
+
+        template = xComponentLoader.loadComponentFromURL("private:stream", "_blank", 0, conversionProperties);
 		
 	}
 	
-	public byte[] fillTemplate(byte[] byteArray) throws Exception {
+	public void fillTemplate(HashMap<String, String> fields) throws Exception {
 		
-		
-		ByteArrayInputStream stream = new ByteArrayInputStream(byteArray);
-		
-		XMultiComponentFactory xMultiComponentFactory = xComponentContext.getServiceManager();
-        Object desktopService = xMultiComponentFactory.createInstanceWithContext("com.sun.star.frame.Desktop", xComponentContext);
-        XComponentLoader xComponentLoader = (XComponentLoader) UnoRuntime.queryInterface(XComponentLoader.class, desktopService);
-        
-        PropertyValue[] propertyValues = new PropertyValue[2];
-        propertyValues[0] = new PropertyValue();
-        propertyValues[1] = new PropertyValue();
-
-        propertyValues[0].Name = "InputStream";
-        propertyValues[0].Value = stream;
-        propertyValues[1].Name = "Hidden";
-        propertyValues[1].Value = new Boolean(true);
-
-        XComponent xComp = xComponentLoader.loadComponentFromURL("private:stream", "_blank", 0, propertyValues);
-        
+    
         XReplaceDescriptor xReplaceDescr = null;
 		XReplaceable xReplaceable = null;
 
-		XTextDocument xTextDocument = (XTextDocument) UnoRuntime.queryInterface(XTextDocument.class, xComp);
+		XTextDocument xTextDocument = (XTextDocument) UnoRuntime.queryInterface(XTextDocument.class, template);
 
 		xReplaceable = (XReplaceable) UnoRuntime.queryInterface(XReplaceable.class, xTextDocument);
 
 		xReplaceDescr = (XReplaceDescriptor) xReplaceable.createReplaceDescriptor();
 
-		  // mail merge the date
-		  xReplaceDescr.setSearchString("<date>");
-		  xReplaceDescr.setReplaceString(new Date().toString());
-		  xReplaceable.replaceAll(xReplaceDescr);
-		  
-		  // mail merge the addressee
-		  xReplaceDescr.setSearchString("<addressee>");
-		  xReplaceDescr.setReplaceString("Best Friend");
-		  xReplaceable.replaceAll(xReplaceDescr);
-		  
-		  // mail merge the signatory
-		  xReplaceDescr.setSearchString("<signatory>");
-		  xReplaceDescr.setReplaceString("Your New Boss");
-		  xReplaceable.replaceAll(xReplaceDescr);
-		  
-		  ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		  
-		  propertyValues[0].Name = "OutputStream";
-		  propertyValues[0].Value = outputStream;
-		  propertyValues[1].Name = "FilterName";
-		  propertyValues[1].Value = "writer_pdf_Export";
+		for (Entry<String, String> entry : fields.entrySet()) {
+					    
+		    xReplaceDescr.setSearchString(entry.getKey());
+			xReplaceDescr.setReplaceString(entry.getValue());
+			xReplaceable.replaceAll(xReplaceDescr);
+	
+		}       
 
-        XStorable xstorable = (XStorable) UnoRuntime.queryInterface(XStorable.class,xComp);
-        xstorable.storeToURL("private:stream", propertyValues);
-
-        XCloseable xclosable = (XCloseable) UnoRuntime.queryInterface(XCloseable.class,xComp);
-        xclosable.close(true);
-
-        byte[] outputBytes = outputStream.toByteArray();	  
-        
-		return outputBytes;
 	}
+
+	
 }
